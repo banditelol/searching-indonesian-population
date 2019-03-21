@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <input type="text" class="search" placeholder="City or State">
+    <ul class="suggestions">
+      <li>Filter for a city</li>
+      <li>or a state</li>
+    </ul>
+  </form>
+<script>
+const endpoint = 'https://gist.githubusercontent.com/banditelol/6c22a6c99da976f272ec4f24e947400e/raw/9de551525c00305b3255f09aa5c1eae6d98eb573/populasiIndonesia.json';
+
+const searchInput = document.querySelector('.search');
+const suggestion = document.querySelector('.suggestions');
+
+const cities = [];
+
+fetch(endpoint)
+  .then(blob => blob.json())
+  .then(data => cities.push(...data));
+
+function findMatches(wordToMatch, cities){ 
+  return cities.filter(place => {
+    const regex = new RegExp(wordToMatch, 'gi');
+    return place.kota.match(regex) || place.provinsi.match(regex)
+  });
+}
+
+function printWithComma(x){
+  return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function displayMatches(inputText){
+  const matchArray = findMatches(this.value, cities);
+  const html = matchArray.map(place => {
+    const regex = new RegExp(this.value, 'gi');
+    const cityName = place.kota.replace(regex,`<span class= 'hl'>${this.value}</span>`)
+    const provName = place.provinsi.replace(regex,`<span class= 'hl'>${this.value}</span>`)
+    return`<li>
+      <span class='name'><strong>${cityName}</strong><br> <span class='secondary'>${provName}</span></span>
+      <span class='population'>${printWithComma(place.populasi)}</span>
+    </li>`;
+  }).join('');
+  suggestion.innerHTML = html;  
+}
+
+searchInput.addEventListener('keyup', displayMatches);
+searchInput.addEventListener('change', displayMatches);
+
+</script>
+  </body>
+</html>
